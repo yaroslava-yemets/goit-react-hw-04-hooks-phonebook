@@ -31,7 +31,7 @@ class App extends Component {
     this.setState({filter: evt.currentTarget.value});
   };
 
-  addContact = ({ name, number }) => {
+  addContact = (name, number) => {
     const foundNames = this.state.contacts.map(contact => contact.name.toLocaleLowerCase());
     const lowerName = name.toLocaleLowerCase();
     if(foundNames.includes(lowerName)){
