@@ -1,38 +1,22 @@
-import React, {Component} from 'react';
+import React, {useState} from 'react';
 import shortid from 'shortid';
-import './App.css';
+import useLocalStorage from './hooks/useLocalStorage';
 import ContactForm from './components/ContactForm';
 import Filter from './components/Filter';
 import ContactList from './components/ContactList';
+import s from './App.module.css';
 
-class App extends Component {
-  static propTypes = {};
 
-  state = {
-    contacts: [],
-    filter: '',
+function App () {
+  const [contacts, setContacts] = useLocalStorage('contacts', []);
+  const [filter, setFilter] = useState('');
+
+  const changeFilter = (evt) => {
+    setFilter(evt.currentTarget.value);
   };
 
-  componentDidMount() {
-    const contacts = JSON.parse(localStorage.getItem('contacts'));
-
-    if(contacts) {
-      this.setState({ contacts });
-    }
-  };
-
-  componentDidUpdate(prevState) {
-    if(this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
-
-  changeFilter = (evt) => {
-    this.setState({filter: evt.currentTarget.value});
-  };
-
-  addContact = (name, number) => {
-    const foundNames = this.state.contacts.map(contact => contact.name.toLocaleLowerCase());
+  const addContact = (name, number) => {
+    const foundNames = contacts.map(contact => contact.name.toLocaleLowerCase());
     const lowerName = name.toLocaleLowerCase();
     if(foundNames.includes(lowerName)){
      return alert(`${name} is already in contacts`);
@@ -43,36 +27,31 @@ class App extends Component {
         number,
       };
   
-      this.setState(({contacts})=> ({
-        contacts: [contact, ...contacts],
-      }));
+      setContacts((contacts) => ([contact, ...contacts]));
   };
 
-  deleteContact = (contactId) => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId)
-    }));
+  const deleteContact = (contactId) => {
+    setContacts(prevContacts => (
+      prevContacts.filter(contact => contact.id !== contactId)
+    ));
   };
 
-  getVisibleContacts = () => {
-    const {filter, contacts} = this.state;
+  const getVisibleContacts = () => {
     const lowerCasedFilter = filter.toLocaleLowerCase();
     return contacts.filter(contact => contact.name.toLocaleLowerCase().includes(lowerCasedFilter))
   };
 
-  render() {
-    const { filter } = this.state;
-    const visibleContacts = this.getVisibleContacts();
+  const visibleContacts = getVisibleContacts();
 
-    return (
-      <div>
-        <h1 className="text">Phonebook</h1>
-        <ContactForm onSubmit={this.addContact} />
-        <h2 className="text">Contacts</h2>
-        <Filter value={filter} onChange={this.changeFilter} />
-        <ContactList contacts={visibleContacts} onDeleteContact={this.deleteContact} />
-      </div>
-    )}
+  return (
+    <div className={s.context}>
+      <h1 className="text">Phonebook</h1>
+      <ContactForm onSubmit={addContact} />
+      <h2 className="text">Contacts</h2>
+      <Filter value={filter} onChange={changeFilter} />
+      <ContactList contacts={visibleContacts} onDeleteContact={deleteContact} />
+    </div>
+  )
 }
 
 export default App;
